@@ -1,5 +1,6 @@
 // Use Schema Constructor, imported Mongoose
 const { Schema, model } = require('mongoose');
+const dateFormat = require('../utils/dateFormat');
 
 const PizzaSchema = new Schema({
     pizzaName: {
@@ -10,14 +11,33 @@ const PizzaSchema = new Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now,
+        get: (createdAtVal) => dateFormat(createdAtVal)
     },
     size: {
         type: String,
         default: "Large"
     },
-    toppings: [] // array
-    
+    toppings: [], // array
+    comments: [
+        {
+            type: Schema.Types.ObjectId, // ObjectId is so that mongoose knows to expect a comment
+            ref: 'Comment' // ref property tells the Pizza Model which docs to search to find the right comments
+        }
+    ]
+},
+{
+    toJSON: { // tells the Schema that it can use virtuals
+        virtuals: true,
+        getters: true,
+    },
+    id: false // false b/c this is a virtual that mongoose returns and we don't need it.
+}
+);
+
+// *Virtual Properties* work just like functions. - get total count of comments and replies on retrieval
+PizzaSchema.virtual('commentCount').get(function() {
+    return this.comments.length;
 });
 
 // create the Pizza Model using the PizzaSchema

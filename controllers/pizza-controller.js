@@ -7,28 +7,39 @@ const pizzaController = {
     // get ALL pizzas -> callback function for GET /api/pizzas, uses Mongoose .find() method
     getAllPizza(req, res) {
         Pizza.find({}) // find() is .findAll() in Sequelize
-        .then(dbPizzaData => res.json(dbPizzaData))
-        .catch(err => {
-            console.log(err);
-            res.status(400).json(err);
-        });
+            .populate({ // populate a field (similar to tables)
+                path: 'comments', // passing in an object with the key path plus the value of the field you want populated
+                select: '-__v' // we don't care about the v field on comments, - means we don't want it to return
+            })
+            .select('-__v')
+            .sort({ _id: -1 }) // sort in DESC order by the _id value
+            .then(dbPizzaData => res.json(dbPizzaData))
+            .catch(err => {
+                console.log(err);
+                res.status(400).json(err);
+            });
     },
 
     // get ONE pizza by ID -> uses Mongoose .findOne() to find single pizza by _id, 
     getPizzaById({ params }, res) { // destructured params out of it as that is the only data we need for this request
         Pizza.findOne({ _id: params.id })
-        .then(dbPizzaData => {
-            // If NO pizza is found, send 404
-            if (!dbPizzaData) {
-                res.status(404).json({ message: 'No pizza found with this id.' });
-                return;
-            }
-            res.json(dbPizzaData);
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(400).json(err);
-        });
+            .populate({
+                path: 'comments',
+                select: '-__v'
+            })
+            .select('-__v')
+            .then(dbPizzaData => {
+                // If NO pizza is found, send 404
+                if (!dbPizzaData) {
+                    res.status(404).json({ message: 'No pizza found with this id.' });
+                    return;
+                }
+                res.json(dbPizzaData);
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(400).json(err);
+            });
     },
 
     // Create a Pizza
