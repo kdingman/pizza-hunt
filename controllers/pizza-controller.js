@@ -51,8 +51,8 @@ const pizzaController = {
 
     // Update pizza by ID -> PUT /api/pizzas/:id - Mongoose finds a single doc we want to update, updates it, then returns updated doc
     updatePizza({ params, body }, res) {
-        Pizza.findOneAndUpdate({ _id: params.id}, body, { new: true }) // new:true will return updated doc true = new doc, nothing = original doc
-        .then(dbPizzaData => {
+        Pizza.findOneAndUpdate({ _id: params.id}, body, { new: true, runValidators: true }) // new:true will return updated doc true = new doc, nothing = original doc
+        .then(dbPizzaData => {                                          // runValidators: true is needed so this it knows to validate any new info
             if (!dbPizzaData) {
                 res.status(404).json({ message: 'No pizza found with this id.' });
                 return;
